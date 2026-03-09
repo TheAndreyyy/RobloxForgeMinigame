@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "dgSpecHash": "eszovWg/ido=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Andrew\\RiderProjects\\RobloxForgeMinigame\\RobloxForgeMinigame\\RobloxForgeMinigame.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Andrew\\.nuget\\packages\\microsoft.win32.systemevents\\9.0.2\\microsoft.win32.systemevents.9.0.2.nupkg.sha512",
+    "C:\\Users\\Andrew\\.nuget\\packages\\opencvsharp4\\4.10.0.20241108\\opencvsharp4.4.10.0.20241108.nupkg.sha512",
+    "C:\\Users\\Andrew\\.nuget\\packages\\opencvsharp4.extensions\\4.10.0.20241108\\opencvsharp4.extensions.4.10.0.20241108.nupkg.sha512",
+    "C:\\Users\\Andrew\\.nuget\\packages\\opencvsharp4.runtime.win\\4.10.0.20241108\\opencvsharp4.runtime.win.4.10.0.20241108.nupkg.sha512",
+    "C:\\Users\\Andrew\\.nuget\\packages\\system.drawing.common\\9.0.2\\system.drawing.common.9.0.2.nupkg.sha512",
+    "C:\\Users\\Andrew\\.nuget\\packages\\system.memory\\4.5.5\\system.memory.4.5.5.nupkg.sha512",
+    "C:\\Users\\Andrew\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\6.0.0\\system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}
