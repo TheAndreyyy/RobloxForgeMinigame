@@ -97,10 +97,8 @@ partial class Form1
         txtRectH4 = new System.Windows.Forms.TextBox();
         lblTargetColorS4 = new System.Windows.Forms.Label();
         lblTargetPreviewS4 = new System.Windows.Forms.Label();
-        btnTargetColorS4 = new System.Windows.Forms.Button();
-        lblPreTargetPreviewS4 = new System.Windows.Forms.Label();
-        btnPreTargetColorS4 = new System.Windows.Forms.Button();
-        lblExitColorS4 = new System.Windows.Forms.Label();
+        btnTargetColorS4 = new Button();
+        lblExitColorS4 = new Label();
         lblExitPixelS4 = new System.Windows.Forms.Label();
         btnExitColorS4 = new System.Windows.Forms.Button();
         txtExitX4 = new System.Windows.Forms.TextBox();
@@ -805,8 +803,6 @@ partial class Form1
         tabPageStage4.Controls.Add(lblTargetColorS4);
         tabPageStage4.Controls.Add(lblTargetPreviewS4);
         tabPageStage4.Controls.Add(btnTargetColorS4);
-        tabPageStage4.Controls.Add(lblPreTargetPreviewS4);
-        tabPageStage4.Controls.Add(btnPreTargetColorS4);
         tabPageStage4.Controls.Add(lblExitColorS4);
         tabPageStage4.Controls.Add(lblExitPixelS4);
         tabPageStage4.Controls.Add(btnExitColorS4);
@@ -889,32 +885,13 @@ partial class Form1
         //
         // btnTargetColorS4
         //
-        btnTargetColorS4.Location = new System.Drawing.Point(140, 50);
+        btnTargetColorS4.Location = new Point(165, 70);
         btnTargetColorS4.Name = "btnTargetColorS4";
-        btnTargetColorS4.Size = new System.Drawing.Size(120, 23);
-        btnTargetColorS4.TabIndex = 22;
-        btnTargetColorS4.Text = "Цель (Зеленый)";
+        btnTargetColorS4.Size = new Size(80, 30);
+        btnTargetColorS4.TabIndex = 7;
+        btnTargetColorS4.Text = "Пипетка";
         btnTargetColorS4.UseVisualStyleBackColor = true;
         btnTargetColorS4.Click += new EventHandler(btnTargetColorS4_Click);
-        //
-        // lblPreTargetPreviewS4
-        //
-        lblPreTargetPreviewS4.BackColor = System.Drawing.Color.White;
-        lblPreTargetPreviewS4.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-        lblPreTargetPreviewS4.Location = new System.Drawing.Point(110, 80);
-        lblPreTargetPreviewS4.Name = "lblPreTargetPreviewS4";
-        lblPreTargetPreviewS4.Size = new System.Drawing.Size(24, 23);
-        lblPreTargetPreviewS4.TabIndex = 23;
-        //
-        // btnPreTargetColorS4
-        //
-        btnPreTargetColorS4.Location = new System.Drawing.Point(140, 80);
-        btnPreTargetColorS4.Name = "btnPreTargetColorS4";
-        btnPreTargetColorS4.Size = new System.Drawing.Size(120, 23);
-        btnPreTargetColorS4.TabIndex = 24;
-        btnPreTargetColorS4.Text = "Предикт (Белый)";
-        btnPreTargetColorS4.UseVisualStyleBackColor = true;
-        btnPreTargetColorS4.Click += btnPreTargetColorS4_Click;
         //
         // lblExitPixelS4
         //
@@ -1191,8 +1168,6 @@ partial class Form1
     private System.Windows.Forms.Label lblTargetColorS4;
     private System.Windows.Forms.Label lblTargetPreviewS4;
     private System.Windows.Forms.Button btnTargetColorS4;
-    private System.Windows.Forms.Label lblPreTargetPreviewS4;
-    private System.Windows.Forms.Button btnPreTargetColorS4;
     private System.Windows.Forms.Label lblExitColorS4;
     private System.Windows.Forms.Label lblExitPixelS4;
     private System.Windows.Forms.Button btnExitColorS4;

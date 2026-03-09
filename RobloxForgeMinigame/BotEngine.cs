@@ -60,7 +60,6 @@ public class BotEngine
     // Настройки из UI (Этап 4)
     public Rectangle SearchRectPhase4 { get; set; } = new Rectangle(500, 300, 800, 600); // Зона поиска пикселя
     public Color TargetColorPhase4 { get; set; } = Color.FromArgb(0, 255, 0); // Зеленый (цель)
-    public Color PreTargetColorPhase4 { get; set; } = Color.White; // Белый (подготовка/предикт)
     public int MatchTolerancePhase4 { get; set; } = 30;
     public int ScanIntervalPhase4 { get; set; } = 50; // Интервал сканирования Этапа 4
     public Point ClickOffsetPhase4 { get; set; } = new Point(0, 0); 

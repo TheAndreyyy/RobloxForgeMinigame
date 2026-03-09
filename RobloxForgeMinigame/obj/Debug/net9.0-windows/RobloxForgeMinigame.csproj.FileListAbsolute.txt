@@ -20,3 +20,4 @@ C:\Users\Andrew\RiderProjects\RobloxForgeMinigame\RobloxForgeMinigame\obj\Debug\
 C:\Users\Andrew\RiderProjects\RobloxForgeMinigame\RobloxForgeMinigame\obj\Debug\net9.0-windows\RobloxForgeMinigame.pdb
 C:\Users\Andrew\RiderProjects\RobloxForgeMinigame\RobloxForgeMinigame\obj\Debug\net9.0-windows\RobloxForgeMinigame.genruntimeconfig.cache
 C:\Users\Andrew\RiderProjects\RobloxForgeMinigame\RobloxForgeMinigame\obj\Debug\net9.0-windows\ref\RobloxForgeMinigame.dll
+C:\Users\Andrew\RiderProjects\RobloxForgeMinigame\RobloxForgeMinigame\obj\Debug\net9.0-windows\RobloxForgeMinigame.sourcelink.json

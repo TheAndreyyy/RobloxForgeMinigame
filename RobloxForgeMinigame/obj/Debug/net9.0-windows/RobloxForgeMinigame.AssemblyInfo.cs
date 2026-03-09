@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RobloxForgeMinigame")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0627470c242493bc349a2929000028481805f706")]
 [assembly: System.Reflection.AssemblyProductAttribute("RobloxForgeMinigame")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RobloxForgeMinigame")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
