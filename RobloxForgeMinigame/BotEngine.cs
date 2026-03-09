@@ -19,6 +19,8 @@ public class BotEngine
     private Task? _botTask;
     private GamePhase _currentPhase = GamePhase.Stage1_WaitColor;
     private int _stage2LogTimer = 0;
+    private Rectangle? _cachedPredictRect = null; // Область прицельного поиска
+    private bool _isMouseCentered = false;
     
     public event Action<GamePhase>? OnPhaseChanged;
     public event Action<int>? OnColorDiffChanged;
@@ -60,6 +62,7 @@ public class BotEngine
     // Настройки из UI (Этап 4)
     public Rectangle SearchRectPhase4 { get; set; } = new Rectangle(500, 300, 800, 600); // Зона поиска пикселя
     public Color TargetColorPhase4 { get; set; } = Color.FromArgb(0, 255, 0); // Зеленый (цель)
+    public Color PreTargetColorPhase4 { get; set; } = Color.White; // Белый (подготовка/предикт)
     public int MatchTolerancePhase4 { get; set; } = 30;
     public int ScanIntervalPhase4 { get; set; } = 50; // Интервал сканирования Этапа 4
     public Point ClickOffsetPhase4 { get; set; } = new Point(0, 0); 
@@ -153,9 +156,6 @@ public class BotEngine
                     }
                 }
 
-                OnPhaseChanged?.Invoke(_currentPhase);
-                lastPhase = _currentPhase;
-
                 // Сброс контекста при смене фазы
                 if (_currentPhase == GamePhase.Stage1_WaitColor)
                 {
@@ -169,11 +169,23 @@ public class BotEngine
                 else if (_currentPhase == GamePhase.Stage4_Icons)
                 {
                     initialColorPhase4 = null;
+                    _cachedPredictRect = null;
+                    _isMouseCentered = false;
                 }
+
+                OnPhaseChanged?.Invoke(_currentPhase);
+                lastPhase = _currentPhase;
             }
 
             try
             {
+                // Если мы в Idle, просто спим
+                if (_currentPhase == GamePhase.Idle)
+                {
+                    Thread.Sleep(100);
+                    continue;
+                }
+
                 switch (_currentPhase)
                 {
                     case GamePhase.Stage1_WaitColor:
@@ -195,10 +207,8 @@ public class BotEngine
                             else
                             {
                                 // Считаем дельту изменения цвета
-                                int colorDiff =
-                                    ImageProcessor.GetColorDifference(initialColorPhase1.Value, currentColor);
-                                Console.WriteLine(
-                                    $"[Этап 1] Дельта цвета: {colorDiff} (Порог: {ColorTolerancePhase1})");
+                                int colorDiff = ImageProcessor.GetColorDifference(initialColorPhase1.Value, currentColor);
+                                Console.WriteLine($"[Этап 1] Дельта цвета: {colorDiff} (Порог: {ColorTolerancePhase1})");
                                 OnColorDiffChanged?.Invoke(colorDiff);
                                 OnColorsUpdated?.Invoke(initialColorPhase1.Value, currentColor);
 
@@ -212,8 +222,6 @@ public class BotEngine
                                     }
 
                                     Console.WriteLine("[Этап 1] Успех! Переход к следующему этапу.");
-
-                                    // Переходим к следующему включенному этапу
                                     _currentPhase = GetNextPhase(_currentPhase);
                                 }
                                 else
@@ -221,60 +229,34 @@ public class BotEngine
                                     // Иначе зажимаем ЛКМ и тянем вверх-вниз
                                     if (!isDragging)
                                     {
-                                        // Точка зажатия с учетом смещения
                                         int startY = DragStartPhase1.Y + DragOffsetPhase1;
-
-                                        // Перемещаемся к точке зажатия (Точка 1 + Offset)
                                         Win32.DragCursorTo(DragStartPhase1.X, startY);
                                         Thread.Sleep(100);
-
-                                        // Зажимаем кнопку
                                         Win32.mouse_event(0x0002 /*MOUSEEVENTF_LEFTDOWN*/, 0, 0, 0, 0);
-                                        Thread.Sleep(200); // Увеличенная задержка для надежного захвата
-
-                                        // Делаем микро-сдвиг, чтобы игра поняла, что начался драг
+                                        Thread.Sleep(200);
                                         Win32.DragCursorTo(DragStartPhase1.X, startY + 2);
-                                        Thread.Sleep(100); // Даем игре осознать начало перемещения
-
+                                        Thread.Sleep(100);
                                         isDragging = true;
-                                        // Начинаем движение от точки фактического зажатия
                                         currentDragY = startY;
-                                        
-                                        // Дополнительная небольшая задержка перед началом осцилляции, как просил пользователь
                                         Thread.Sleep(50);
                                     }
 
                                     currentDragY += dragDir * DragSpeedPhase1;
-
-                                    // Соблюдаем границы зоны свайпа (вокруг DragStartPhase1)
                                     int minY = DragStartPhase1.Y - DragDistancePhase1;
                                     int maxY = DragStartPhase1.Y + DragDistancePhase1;
 
-                                    if (currentDragY >= maxY)
-                                    {
-                                        currentDragY = maxY;
-                                        dragDir = -1;
-                                    }
-                                    else if (currentDragY <= minY)
-                                    {
-                                        currentDragY = minY;
-                                        dragDir = 1;
-                                    }
+                                    if (currentDragY >= maxY) { currentDragY = maxY; dragDir = -1; }
+                                    else if (currentDragY <= minY) { currentDragY = minY; dragDir = 1; }
 
-                                    // Двигаем мышь строго по оси X точки зажатия
                                     Win32.DragCursorTo(DragStartPhase1.X, currentDragY);
                                 }
                             }
                         }
-
                         break;
 
                     case GamePhase.Stage2_Slider:
-                        using (var fullBmp = ImageProcessor.CaptureScreen(SearchRectPhase2.X, SearchRectPhase2.Y,
-                                   SearchRectPhase2.Width, SearchRectPhase2.Height))
+                        using (var fullBmp = ImageProcessor.CaptureScreen(SearchRectPhase2.X, SearchRectPhase2.Y, SearchRectPhase2.Width, SearchRectPhase2.Height))
                         {
-                            // 1. Проверяем условие завершения этапа (пиксель в другом месте)
-                            // Захватываем точку контроля (относительно всего экрана)
                             using (var checkBmp = ImageProcessor.CaptureScreen(PixelPhase2.X, PixelPhase2.Y, 1, 1))
                             {
                                 Color currentColor = checkBmp.GetPixel(0, 0);
@@ -285,8 +267,7 @@ public class BotEngine
                                 }
                                 else
                                 {
-                                    int colorDiff =
-                                        ImageProcessor.GetColorDifference(initialColorPhase2.Value, currentColor);
+                                    int colorDiff = ImageProcessor.GetColorDifference(initialColorPhase2.Value, currentColor);
                                     OnColorDiffChanged?.Invoke(colorDiff);
                                     OnColorsUpdated?.Invoke(initialColorPhase2.Value, currentColor);
 
@@ -298,27 +279,21 @@ public class BotEngine
                                 }
                             }
 
-                            // 2. Логика удержания ползунка
-                            // Сканируем всю ширину зоны поиска (не только центр) для надежности
                             int minSliderY = int.MaxValue, maxSliderY = int.MinValue;
                             int minZoneY = int.MaxValue, maxZoneY = int.MinValue;
                             int countSlider = 0, countZone = 0;
 
-                            for (int x = 0; x < SearchRectPhase2.Width; x += 5) // Шаг 5 для скорости
+                            for (int x = 0; x < SearchRectPhase2.Width; x += 5)
                             {
                                 for (int y = 0; y < SearchRectPhase2.Height; y += 2)
                                 {
                                     Color p = fullBmp.GetPixel(x, y);
-
-                                    // Ищем ползунок
                                     if (ImageProcessor.GetColorDifference(p, SliderColorPhase2) < MatchTolerancePhase2)
                                     {
                                         if (y < minSliderY) minSliderY = y;
                                         if (y > maxSliderY) maxSliderY = y;
                                         countSlider++;
                                     }
-
-                                    // Ищем зону
                                     if (ImageProcessor.GetColorDifference(p, ZoneColorPhase2) < MatchTolerancePhase2)
                                     {
                                         if (y < minZoneY) minZoneY = y;
@@ -330,31 +305,21 @@ public class BotEngine
 
                             if (countSlider > 0 && countZone > 0)
                             {
-                                // Используем математический центр для исключения искажений, если ползунок срезан краем зоны поиска
                                 int avgSliderY = minSliderY + (maxSliderY - minSliderY) / 2;
                                 int avgZoneY = minZoneY + (maxZoneY - minZoneY) / 2;
-
                                 _stage2LogTimer++;
-                                if (_stage2LogTimer % 20 == 0)
-                                {
-                                    Console.WriteLine($"[Этап 2] Вижу! Плз:{avgSliderY} (нашел {countSlider} пкс), Зона:{avgZoneY} (нашел {countZone} пкс)");
-                                }
+                                if (_stage2LogTimer % 20 == 0) Console.WriteLine($"[Этап 2] Вижу! Плз:{avgSliderY}, Зона:{avgZoneY}");
 
-                                // Проверяем, не упал ли ползунок в самый низ
                                 bool isAtBottom = (maxSliderY >= SearchRectPhase2.Height - 15);
-
-                                // Если ползунок ниже зоны (Y больше) или он лежит на дне
                                 if (avgSliderY > avgZoneY + 3 || isAtBottom)
                                 {
                                     if (!isDragging)
                                     {
-                                        Console.WriteLine($"[Этап 2] ЗАЖАТЬ (P:{avgSliderY} > Z:{avgZoneY}{(isAtBottom ? " [ДНО]" : "")})");
                                         Win32.mouse_event(0x0002 /*MOUSEEVENTF_LEFTDOWN*/, 0, 0, 0, 0);
                                         isDragging = true;
                                     }
                                     else if (isAtBottom && _stage2LogTimer % 2 == 0)
                                     {
-                                        // "Отлепляем" ползунок от дна быстрым повторным кликом, если долгое зажатие не помогает
                                         Win32.mouse_event(0x0004 /*MOUSEEVENTF_LEFTUP*/, 0, 0, 0, 0);
                                         Thread.Sleep(20);
                                         Win32.mouse_event(0x0002 /*MOUSEEVENTF_LEFTDOWN*/, 0, 0, 0, 0);
@@ -364,116 +329,136 @@ public class BotEngine
                                 {
                                     if (isDragging)
                                     {
-                                        Console.WriteLine($"[Этап 2] ОТПУСТИТЬ (P:{avgSliderY} <= Z:{avgZoneY})");
                                         Win32.mouse_event(0x0004 /*MOUSEEVENTF_LEFTUP*/, 0, 0, 0, 0);
                                         isDragging = false;
                                     }
                                 }
                             }
-                            else
+                            else if (isDragging)
                             {
-                                _stage2LogTimer++;
-                                if (_stage2LogTimer % 20 == 0)
-                                {
-                                    Console.WriteLine($"[Этап 2] НЕ ВИЖУ! Слайдер пкс: {countSlider}, Зона пкс: {countZone}. Цвета: Плз={SliderColorPhase2}, Зн={ZoneColorPhase2}");
-                                }
-
-                                if (isDragging)
-                                {
-                                    Console.WriteLine(
-                                        $"[Этап 2] ПОТЕРЯ (Слайдер:{countSlider}, Зона:{countZone}). ОТПУСКАЕМ.");
-                                    Win32.mouse_event(0x0004 /*MOUSEEVENTF_LEFTUP*/, 0, 0, 0, 0);
-                                    isDragging = false;
-                                }
+                                Win32.mouse_event(0x0004 /*MOUSEEVENTF_LEFTUP*/, 0, 0, 0, 0);
+                                isDragging = false;
                             }
                         }
-
                         break;
 
                     case GamePhase.Stage3_WaitClick:
-                        Console.WriteLine($"[Этап 3] Начало серии из {ClickCountPhase3} кликов в ({PixelPhase3.X}, {PixelPhase3.Y}) с интервалом {ClickIntervalPhase3} мс.");
-                        
                         for (int i = 0; i < ClickCountPhase3; i++)
                         {
                             Win32.ClickAt(PixelPhase3.X, PixelPhase3.Y);
                             if (ClickIntervalPhase3 > 0) Thread.Sleep(ClickIntervalPhase3);
                         }
-
-                        Console.WriteLine("[Этап 3] Серия кликов завершена. Переход к следующему этапу.");
                         _currentPhase = GetNextPhase(_currentPhase);
                         break;
 
                     case GamePhase.Stage4_Icons:
                         using (var screenBmp = ImageProcessor.CaptureScreen(SearchRectPhase4.X, SearchRectPhase4.Y, SearchRectPhase4.Width, SearchRectPhase4.Height))
                         {
-                            // 1. Проверяем условие завершения (Exit Pixel)
                             using (var checkBmp = ImageProcessor.CaptureScreen(ExitPixelPhase4.X, ExitPixelPhase4.Y, 1, 1))
                             {
                                 Color currentColor = checkBmp.GetPixel(0, 0);
                                 if (initialColorPhase4 == null)
                                 {
                                     initialColorPhase4 = currentColor;
-                                    OnColorsUpdated?.Invoke(initialColorPhase4.Value, currentColor);
                                 }
-                                else
+                                else if (ImageProcessor.GetColorDifference(initialColorPhase4.Value, currentColor) > ColorTolerancePhase4)
                                 {
-                                    int colorDiff = ImageProcessor.GetColorDifference(initialColorPhase4.Value, currentColor);
-                                    OnColorDiffChanged?.Invoke(colorDiff);
-                                    OnColorsUpdated?.Invoke(initialColorPhase4.Value, currentColor);
-
-                                    if (colorDiff > ColorTolerancePhase4)
-                                    {
-                                        Console.WriteLine($"[Этап 4] Успех! Цвет в точке выхода изменился (Дельта: {colorDiff}). Завершение.");
-                                        _currentPhase = GetNextPhase(_currentPhase);
-                                        break;
-                                    }
+                                    _currentPhase = GetNextPhase(_currentPhase);
+                                    _cachedPredictRect = null;
+                                    break;
                                 }
                             }
 
-                            // 2. Ищем пиксели в области для определения границ фигуры (круга)
-                            int minX = int.MaxValue, minY = int.MaxValue;
-                            int maxX = int.MinValue, maxY = int.MinValue;
-                            int foundCount = 0;
-
-                            for (int y = 0; y < SearchRectPhase4.Height; y += 3)
+                            if (_cachedPredictRect != null)
                             {
-                                for (int x = 0; x < SearchRectPhase4.Width; x += 3)
+                                Rectangle localRect = _cachedPredictRect.Value;
+                                using (var localBmp = ImageProcessor.CaptureScreen(SearchRectPhase4.X + localRect.X, SearchRectPhase4.Y + localRect.Y, localRect.Width, localRect.Height))
                                 {
-                                    Color p = screenBmp.GetPixel(x, y);
-                                    if (ImageProcessor.GetColorDifference(p, TargetColorPhase4) < MatchTolerancePhase4)
+                                    int minX = int.MaxValue, minY = int.MaxValue;
+                                    int maxX = int.MinValue, maxY = int.MinValue;
+                                    int foundGreen = 0;
+                                    int foundWhite = 0;
+
+                                    for (int y = 0; y < localRect.Height; y += 2)
                                     {
-                                        if (x < minX) minX = x;
-                                        if (y < minY) minY = y;
-                                        if (x > maxX) maxX = x;
-                                        if (y > maxY) maxY = y;
-                                        foundCount++;
+                                        for (int x = 0; x < localRect.Width; x += 2)
+                                        {
+                                            Color p = localBmp.GetPixel(x, y);
+                                            if (ImageProcessor.GetColorDifference(p, TargetColorPhase4) < MatchTolerancePhase4)
+                                            {
+                                                if (x < minX) minX = x; if (y < minY) minY = y;
+                                                if (x > maxX) maxX = x; if (y > maxY) maxY = y;
+                                                foundGreen++;
+                                            }
+                                            else if (ImageProcessor.GetColorDifference(p, PreTargetColorPhase4) < MatchTolerancePhase4)
+                                            {
+                                                foundWhite++;
+                                            }
+                                        }
+                                    }
+
+                                    if (foundGreen > 2)
+                                    {
+                                        int centerX = localRect.X + minX + (maxX - minX) / 2;
+                                        int centerY = localRect.Y + minY + (maxY - minY) / 2;
+                                        Win32.ClickAt(SearchRectPhase4.X + centerX + ClickOffsetPhase4.X, SearchRectPhase4.Y + centerY + ClickOffsetPhase4.Y);
+                                        _cachedPredictRect = null;
+                                        _isMouseCentered = false;
+                                        Thread.Sleep(100);
+                                    }
+                                    else if (foundWhite == 0 && foundGreen == 0)
+                                    {
+                                        _cachedPredictRect = null;
+                                        _isMouseCentered = false;
                                     }
                                 }
-                            }
-
-                            if (foundCount > 0)
-                            {
-                                // Вычисляем геометрический центр найденной фигуры
-                                int centerX = minX + (maxX - minX) / 2;
-                                int centerY = minY + (maxY - minY) / 2;
-
-                                int targetX = SearchRectPhase4.X + centerX + ClickOffsetPhase4.X;
-                                int targetY = SearchRectPhase4.Y + centerY + ClickOffsetPhase4.Y;
-
-                                Console.WriteLine($"[Этап 4] Найдено {foundCount} пикселей. Центр фигуры: ({centerX},{centerY}). Кликаю в ({targetX}, {targetY}).");
-                                Win32.ClickAt(targetX, targetY);
                             }
                             else
                             {
-                                _stage2LogTimer++;
-                                if (_stage2LogTimer % 20 == 0)
+                                int minX = int.MaxValue, minY = int.MaxValue;
+                                int maxX = int.MinValue, maxY = int.MinValue;
+                                int foundWhite = 0, foundTarget = 0;
+
+                                for (int y = 0; y < SearchRectPhase4.Height; y += 4)
                                 {
-                                    Console.WriteLine($"[Этап 4] Ищу пиксель цвета {TargetColorPhase4} в области {SearchRectPhase4}...");
+                                    for (int x = 0; x < SearchRectPhase4.Width; x += 4)
+                                    {
+                                        Color p = screenBmp.GetPixel(x, y);
+                                        if (ImageProcessor.GetColorDifference(p, TargetColorPhase4) < MatchTolerancePhase4)
+                                        {
+                                            if (x < minX) minX = x; if (y < minY) minY = y;
+                                            if (x > maxX) maxX = x; if (y > maxY) maxY = y;
+                                            foundTarget++;
+                                        }
+                                        else if (foundTarget == 0 && ImageProcessor.GetColorDifference(p, PreTargetColorPhase4) < MatchTolerancePhase4)
+                                        {
+                                            if (x < minX) minX = x; if (y < minY) minY = y;
+                                            if (x > maxX) maxX = x; if (y > maxY) maxY = y;
+                                            foundWhite++;
+                                        }
+                                    }
                                 }
-                                
-                                // Используем настраиваемый интервал опроса
-                                if (ScanIntervalPhase4 > 0) Thread.Sleep(ScanIntervalPhase4);
+
+                                if (foundTarget > 10)
+                                {
+                                    int centerX = minX + (maxX - minX) / 2;
+                                    int centerY = minY + (maxY - minY) / 2;
+                                    Win32.ClickAt(SearchRectPhase4.X + centerX + ClickOffsetPhase4.X, SearchRectPhase4.Y + centerY + ClickOffsetPhase4.Y);
+                                    Thread.Sleep(100);
+                                }
+                                else if (foundWhite > 5)
+                                {
+                                    int centerX = minX + (maxX - minX) / 2;
+                                    int centerY = minY + (maxY - minY) / 2;
+                                    _cachedPredictRect = new Rectangle(minX - 15, minY - 15, (maxX - minX) + 30, (maxY - minY) + 30);
+                                    if (!_isMouseCentered)
+                                    {
+                                        Win32.SetCursorPos(SearchRectPhase4.X + centerX, SearchRectPhase4.Y + centerY);
+                                        _isMouseCentered = true;
+                                    }
+                                }
                             }
+                            if (ScanIntervalPhase4 > 0) Thread.Sleep(ScanIntervalPhase4);
                         }
                         break;
                 }
@@ -483,16 +468,8 @@ public class BotEngine
                 Debug.WriteLine($"Error in bot loop: {ex.Message}");
             }
 
-            // Небольшая задержка, чтобы не грузить CPU (в 4 этапе используем свой интервал)
-            if (_currentPhase != GamePhase.Stage4_Icons)
-            {
-                Thread.Sleep(50);
-            }
-            else
-            {
-                // В 4 этапе спим самый минимум, так как там есть ScanIntervalPhase4
-                Thread.Sleep(10);
-            }
+            if (_currentPhase != GamePhase.Stage4_Icons) Thread.Sleep(50);
+            else Thread.Sleep(10);
         }
     }
 

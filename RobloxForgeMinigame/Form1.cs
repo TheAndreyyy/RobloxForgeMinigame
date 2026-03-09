@@ -10,6 +10,7 @@ public partial class Form1 : Form
     public Form1()
     {
         InitializeComponent();
+        this.TopMost = true; // Закрепляем окно поверх других
 
         // Программно адаптируем UI под новые реалии 1 Этапа
         // (UI теперь визуально настроен в Form1.Designer.cs для совместимости с Rider)
@@ -155,6 +156,19 @@ public partial class Form1 : Form
     private void btnTargetColorS4_Click(object sender, EventArgs e)
     {
         PickStage4TargetColor();
+    }
+
+    private void btnPreTargetColorS4_Click(object sender, EventArgs e)
+    {
+        using (var picker = new ColorPickerOverlay())
+        {
+            if (picker.ShowDialog() == DialogResult.OK)
+            {
+                lblPreTargetPreviewS4.BackColor = picker.SelectedColor;
+                _bot.PreTargetColorPhase4 = picker.SelectedColor;
+                SaveSettings();
+            }
+        }
     }
 
     private void btnExitColorS4_Click(object sender, EventArgs e)
@@ -404,6 +418,7 @@ public partial class Form1 : Form
         // Apply Phase 4
         _bot.SearchRectPhase4 = new Rectangle(rx4, ry4, rw4, rh4);
         _bot.TargetColorPhase4 = lblTargetPreviewS4.BackColor;
+        _bot.PreTargetColorPhase4 = lblPreTargetPreviewS4.BackColor;
         _bot.ExitPixelPhase4 = new Point(ex4, ey4);
         _bot.ColorTolerancePhase4 = etol4;
         _bot.ClickOffsetPhase4 = new Point(ox4, oy4);
@@ -512,6 +527,7 @@ public partial class Form1 : Form
             { "X4", txtRectX4.Text }, { "Y4", txtRectY4.Text },
             { "W4", txtRectW4.Text }, { "H4", txtRectH4.Text },
             { "TCol4", lblTargetPreviewS4.BackColor.ToArgb().ToString() },
+            { "PCol4", lblPreTargetPreviewS4.BackColor.ToArgb().ToString() },
             { "Ex4", txtExitX4.Text }, { "Ey4", txtExitY4.Text },
             { "ETol4", txtExitTolerance4.Text },
             { "Ox4", txtOffsetX4.Text }, { "Oy4", txtOffsetY4.Text },
@@ -578,6 +594,7 @@ public partial class Form1 : Form
                     if (settings.ContainsKey("W4")) txtRectW4.Text = settings["W4"];
                     if (settings.ContainsKey("H4")) txtRectH4.Text = settings["H4"];
                     if (settings.ContainsKey("TCol4") && int.TryParse(settings["TCol4"], out int tc4)) lblTargetPreviewS4.BackColor = Color.FromArgb(tc4);
+                    if (settings.ContainsKey("PCol4") && int.TryParse(settings["PCol4"], out int pc4)) lblPreTargetPreviewS4.BackColor = Color.FromArgb(pc4);
                     if (settings.ContainsKey("Ex4")) txtExitX4.Text = settings["Ex4"];
                     if (settings.ContainsKey("Ey4")) txtExitY4.Text = settings["Ey4"];
                     if (settings.ContainsKey("ETol4")) txtExitTolerance4.Text = settings["ETol4"];
