@@ -68,6 +68,7 @@ public class BotEngine
     public Point ClickOffsetPhase4 { get; set; } = new Point(0, 0); 
     public Point ExitPixelPhase4 { get; set; } = new Point(800, 450);
     public int ColorTolerancePhase4 { get; set; } = 30;
+    public int PredictSearchPaddingPhase4 { get; set; } = 15; // Запас зоны поиска (padding)
 
     // Задержки между этапами (мс)
     public int DelayAfterS1 { get; set; } = 500;
@@ -401,7 +402,11 @@ public class BotEngine
                                     {
                                         int centerX = localRect.X + minX + (maxX - minX) / 2;
                                         int centerY = localRect.Y + minY + (maxY - minY) / 2;
-                                        Win32.ClickAt(SearchRectPhase4.X + centerX + ClickOffsetPhase4.X, SearchRectPhase4.Y + centerY + ClickOffsetPhase4.Y);
+                                        int x = SearchRectPhase4.X + centerX + ClickOffsetPhase4.X;
+                                        int y = SearchRectPhase4.Y + centerY + ClickOffsetPhase4.Y;
+                                        Win32.ClickAt(x, y);
+                                        Thread.Sleep(20);
+                                        Win32.ClickAt(x, y);
                                         _cachedPredictRect = null;
                                         _isMouseCentered = false;
                                         Thread.Sleep(100);
@@ -450,7 +455,9 @@ public class BotEngine
                                 {
                                     int centerX = minX + (maxX - minX) / 2;
                                     int centerY = minY + (maxY - minY) / 2;
-                                    _cachedPredictRect = new Rectangle(minX - 15, minY - 15, (maxX - minX) + 30, (maxY - minY) + 30);
+                                    int padding = PredictSearchPaddingPhase4;
+                                    _cachedPredictRect = new Rectangle(minX - padding, minY - padding, (maxX - minX) + padding * 2, (maxY - minY) + padding * 2);
+                                    Debug.WriteLine($"[Этап 4] Захвачена зона предикта: {_cachedPredictRect} (padding: {padding})");
                                     if (!_isMouseCentered)
                                     {
                                         Win32.SetCursorPos(SearchRectPhase4.X + centerX, SearchRectPhase4.Y + centerY);

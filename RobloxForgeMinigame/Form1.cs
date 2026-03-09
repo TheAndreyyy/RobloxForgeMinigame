@@ -54,6 +54,7 @@ public partial class Form1 : Form
         AttachDragToChange(txtOffsetX4);
         AttachDragToChange(txtOffsetY4);
         AttachDragToChange(txtScanInterval4);
+        AttachDragToChange(txtPredictPaddingS4);
         
         // Stage 2 Color Pickers (теперь обрабатываются через ColorPickerOverlay, см. ниже)
 
@@ -388,7 +389,8 @@ public partial class Form1 : Form
             !int.TryParse(txtExitY4.Text, out int ey4) ||
             !int.TryParse(txtExitTolerance4.Text, out int etol4) ||
             !int.TryParse(txtOffsetX4.Text, out int ox4) ||
-            !int.TryParse(txtOffsetY4.Text, out int oy4))
+            !int.TryParse(txtOffsetY4.Text, out int oy4) ||
+            !int.TryParse(txtPredictPaddingS4.Text, out int pad4))
         {
             if (!silent) MessageBox.Show("Ошибка в параметрах Этапа 4", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
@@ -423,6 +425,7 @@ public partial class Form1 : Form
         _bot.ColorTolerancePhase4 = etol4;
         _bot.ClickOffsetPhase4 = new Point(ox4, oy4);
         _bot.ScanIntervalPhase4 = int.TryParse(txtScanInterval4.Text, out var si4) ? si4 : 50;
+        _bot.PredictSearchPaddingPhase4 = pad4;
 
         // Delays
         if (int.TryParse(txtDelayS1.Text, out int d1)) _bot.DelayAfterS1 = d1;
@@ -532,6 +535,7 @@ public partial class Form1 : Form
             { "ETol4", txtExitTolerance4.Text },
             { "Ox4", txtOffsetX4.Text }, { "Oy4", txtOffsetY4.Text },
             { "ScanInterval4", txtScanInterval4.Text },
+            { "Pad4", txtPredictPaddingS4.Text },
             
             { "E1", chkStage1.Checked.ToString() },
             { "E2", chkStage2.Checked.ToString() },
@@ -601,6 +605,7 @@ public partial class Form1 : Form
                     if (settings.ContainsKey("Ox4")) txtOffsetX4.Text = settings["Ox4"];
                     if (settings.ContainsKey("Oy4")) txtOffsetY4.Text = settings["Oy4"];
                     if (settings.ContainsKey("ScanInterval4")) txtScanInterval4.Text = settings["ScanInterval4"];
+                    if (settings.ContainsKey("Pad4")) txtPredictPaddingS4.Text = settings["Pad4"];
 
                     if (settings.ContainsKey("E1")) chkStage1.Checked = settings["E1"] == "True";
                     if (settings.ContainsKey("E2")) chkStage2.Checked = settings["E2"] == "True";

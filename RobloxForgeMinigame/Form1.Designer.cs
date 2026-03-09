@@ -112,6 +112,8 @@ partial class Form1
         txtOffsetY4 = new System.Windows.Forms.TextBox();
         lblScanIntervalS4 = new System.Windows.Forms.Label();
         txtScanInterval4 = new System.Windows.Forms.TextBox();
+        lblPredictPaddingS4 = new System.Windows.Forms.Label();
+        txtPredictPaddingS4 = new System.Windows.Forms.TextBox();
         btnToggleOverlayS4 = new System.Windows.Forms.Button();
         lblStartColor = new System.Windows.Forms.Label();
         lblCurrentColor = new System.Windows.Forms.Label();
@@ -126,6 +128,8 @@ partial class Form1
         tabPageStage3.SuspendLayout();
         tabPageStage4.SuspendLayout();
         SuspendLayout();
+        // 
+        // btnStartStop
         // 
         // btnStartStop
         // 
@@ -819,6 +823,8 @@ partial class Form1
         tabPageStage4.Controls.Add(txtOffsetY4);
         tabPageStage4.Controls.Add(lblScanIntervalS4);
         tabPageStage4.Controls.Add(txtScanInterval4);
+        tabPageStage4.Controls.Add(lblPredictPaddingS4);
+        tabPageStage4.Controls.Add(txtPredictPaddingS4);
         tabPageStage4.Controls.Add(btnToggleOverlayS4);
         tabPageStage4.Location = new System.Drawing.Point(4, 29);
         tabPageStage4.Name = "tabPageStage4";
@@ -891,7 +897,7 @@ partial class Form1
         // 
         btnTargetColorS4.Location = new System.Drawing.Point(146, 105);
         btnTargetColorS4.Name = "btnTargetColorS4";
-        btnTargetColorS4.Size = new System.Drawing.Size(120, 23);
+        btnTargetColorS4.Size = new System.Drawing.Size(120, 37);
         btnTargetColorS4.TabIndex = 22;
         btnTargetColorS4.Text = "Цель (Зеленый)";
         btnTargetColorS4.UseVisualStyleBackColor = true;
@@ -909,7 +915,7 @@ partial class Form1
         // 
         btnPreTargetColorS4.Location = new System.Drawing.Point(146, 68);
         btnPreTargetColorS4.Name = "btnPreTargetColorS4";
-        btnPreTargetColorS4.Size = new System.Drawing.Size(120, 23);
+        btnPreTargetColorS4.Size = new System.Drawing.Size(120, 31);
         btnPreTargetColorS4.TabIndex = 24;
         btnPreTargetColorS4.Text = "Предикт (Белый)";
         btnPreTargetColorS4.UseVisualStyleBackColor = true;
@@ -932,7 +938,7 @@ partial class Form1
         // 
         // btnExitColorS4
         // 
-        btnExitColorS4.Location = new System.Drawing.Point(210, 148);
+        btnExitColorS4.Location = new System.Drawing.Point(218, 148);
         btnExitColorS4.Name = "btnExitColorS4";
         btnExitColorS4.Size = new System.Drawing.Size(80, 30);
         btnExitColorS4.TabIndex = 9;
@@ -940,7 +946,7 @@ partial class Form1
         // 
         // txtExitX4
         // 
-        txtExitX4.Location = new System.Drawing.Point(110, 150);
+        txtExitX4.Location = new System.Drawing.Point(116, 150);
         txtExitX4.Name = "txtExitX4";
         txtExitX4.Size = new System.Drawing.Size(45, 27);
         txtExitX4.TabIndex = 10;
@@ -948,7 +954,7 @@ partial class Form1
         // 
         // txtExitY4
         // 
-        txtExitY4.Location = new System.Drawing.Point(160, 150);
+        txtExitY4.Location = new System.Drawing.Point(167, 150);
         txtExitY4.Name = "txtExitY4";
         txtExitY4.Size = new System.Drawing.Size(45, 27);
         txtExitY4.TabIndex = 11;
@@ -965,7 +971,7 @@ partial class Form1
         // 
         // txtExitTolerance4
         // 
-        txtExitTolerance4.Location = new System.Drawing.Point(110, 179);
+        txtExitTolerance4.Location = new System.Drawing.Point(116, 179);
         txtExitTolerance4.Name = "txtExitTolerance4";
         txtExitTolerance4.Size = new System.Drawing.Size(45, 27);
         txtExitTolerance4.TabIndex = 13;
@@ -1012,6 +1018,23 @@ partial class Form1
         txtScanInterval4.Size = new System.Drawing.Size(45, 27);
         txtScanInterval4.TabIndex = 18;
         txtScanInterval4.Text = "50";
+        // 
+        // lblPredictPaddingS4
+        // 
+        lblPredictPaddingS4.AutoSize = true;
+        lblPredictPaddingS4.Location = new System.Drawing.Point(190, 235);
+        lblPredictPaddingS4.Name = "lblPredictPaddingS4";
+        lblPredictPaddingS4.Size = new System.Drawing.Size(91, 20);
+        lblPredictPaddingS4.TabIndex = 26;
+        lblPredictPaddingS4.Text = "Запас зоны:";
+        // 
+        // txtPredictPaddingS4
+        // 
+        txtPredictPaddingS4.Location = new System.Drawing.Point(285, 232);
+        txtPredictPaddingS4.Name = "txtPredictPaddingS4";
+        txtPredictPaddingS4.Size = new System.Drawing.Size(45, 27);
+        txtPredictPaddingS4.TabIndex = 27;
+        txtPredictPaddingS4.Text = "15";
         // 
         // btnToggleOverlayS4
         // 
@@ -1218,4 +1241,6 @@ partial class Form1
     private System.Windows.Forms.TextBox txtDelayS3;
     private System.Windows.Forms.Label lblScanIntervalS4;
     private System.Windows.Forms.TextBox txtScanInterval4;
+    private System.Windows.Forms.Label lblPredictPaddingS4;
+    private System.Windows.Forms.TextBox txtPredictPaddingS4;
 }
